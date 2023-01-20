@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js";
 const firebaseConfig = {
   apiKey: "AIzaSyCVdHkw_mbnVXfxNKa5rmOBXl_IgAbpX-8",
   authDomain: "lottery-game-form.firebaseapp.com",
@@ -6,6 +6,7 @@ const firebaseConfig = {
   storageBucket: "lottery-game-form.appspot.com",
   messagingSenderId: "634618825667",
   appId: "1:634618825667:web:5ddbb9aee28e4a58d70b76",
+  databaseURL: "https://lottery-game-form-default-rtdb.firebaseio.com"
 };
 
 export const app = initializeApp(firebaseConfig);
