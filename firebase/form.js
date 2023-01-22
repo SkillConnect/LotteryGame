@@ -56,6 +56,11 @@ async function submitForm(name, email, phone, uniqueCode) {
     failMessage();
   }
 
+  if (!isCodeValid) {
+    failMessage("Invalid Unique code!");
+    return;
+  }
+
   email = email.toLowerCase();
   const emailValidity = await validateData("email", email);
   if (!emailValidity) {
@@ -85,12 +90,7 @@ async function submitForm(name, email, phone, uniqueCode) {
     console.log(error);
   }
 
-  if (!isCodeValid) {
-    failMessage("Invalid Unique code!");
-    return;
-  } else {
-    await set(ref(db, `UniqueCodes/${uniqueCode}`), true);
-  }
+  await set(ref(db, `UniqueCodes/${uniqueCode}`), true);
 
   try {
     await set(ref(db, `formData/${uniqueCode}`), {
