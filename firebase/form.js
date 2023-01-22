@@ -5,6 +5,7 @@ import {
   ref,
   get,
   child,
+  remove,
 } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-database.js";
 
 const db = getDatabase(app);
@@ -39,7 +40,6 @@ contactForm.addEventListener("submit", async function (event) {
 });
 
 async function submitForm(name, email, phone, uniqueCode) {
-  const id = new Date().getTime();
   let isCodeValid = false;
 
   const uniqueCodes = await get(child(dbRef, "UniqueCodes"));
@@ -56,6 +56,35 @@ async function submitForm(name, email, phone, uniqueCode) {
     failMessage();
   }
 
+  email = email.toLowerCase();
+  const emailValidity = await validateData("email", email);
+  if (!emailValidity) {
+    failMessage("Email already exists!");
+    return;
+  }
+
+  try {
+    await set(ref(db, `email/${uniqueCode}`), email);
+  } catch (error) {
+    console.log(error);
+    failMessage();
+    return;
+  }
+
+  const phoneValidity = await validateData("phone", phone);
+  if (!phoneValidity) {
+    await remove(ref(db, `email/${uniqueCode}`));
+    failMessage("Phone already exists!");
+    return;
+  }
+
+  try {
+    await set(ref(db, `phone/${uniqueCode}`), phone);
+  } catch (error) {
+    failMessage();
+    console.log(error);
+  }
+
   if (!isCodeValid) {
     failMessage("Invalid Unique code!");
     return;
@@ -63,16 +92,30 @@ async function submitForm(name, email, phone, uniqueCode) {
     await set(ref(db, `UniqueCodes/${uniqueCode}`), true);
   }
 
-  await set(ref(db, `email/${id}`), `${email}`);
+  try {
+    await set(ref(db, `formData/${uniqueCode}`), {
+      email,
+      phone,
+      name,
+      uniqueCode,
+      createdAt: new Date().getTime(),
+    });
+    successMessage();
+  } catch (error) {
+    failMessage();
+    return;
+  }
+}
 
-  await set(ref(db, `phone/${id}`), `${phone}`);
-
-  await set(ref(db, `formData/${id}`), {
-    email,
-    phone,
-    name,
-    uniqueCode,
-    createdAt: new Date().toISOString(),
-  });
-  successMessage();
+async function validateData(path, value) {
+  const pathData = await get(child(dbRef, path));
+  if (pathData.exists()) {
+    const data = pathData.val();
+    for (let key in data) {
+      if (data[key] === value) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
